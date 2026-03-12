@@ -1,0 +1,5 @@
+{
+  "name": "CTM Planner MVP",
+  "description": "Sistema de Planejamento Automatizado para o CTM (Jejum e Rotinas). Gera cronogramas escalonados, valida dados e gerencia versões de distritos.",
+  "requestFramePermissions": []
+}

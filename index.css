@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Trava o ecrã global para evitar "bugs" de rolagem dupla */
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; 
+  }
+  
+  body {
+    @apply bg-[#F4F4F5] dark:bg-[#020617] text-slate-800 dark:text-slate-200 antialiased transition-colors duration-300;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+@layer components {
+  /* Cartões Bento à prova de bugs */
+  .bento-card {
+    @apply bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_15px_-3px_rgba(0,0,0,0.4)] transition-all duration-300;
+  }
+  
+  /* Campos de texto corrigidos para o Modo Escuro */
+  .input-field {
+    @apply w-full bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-medium rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all;
+  }
+  
+  /* Botões premium estabilizados */
+  .btn-premium {
+    @apply flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none shadow-sm border border-transparent;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar elegante que não estica o layout */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-300/60 dark:bg-slate-700/80 rounded-full hover:bg-slate-400 dark:hover:bg-slate-600 transition-colors;
+  }
+  
+  /* Animações suaves para os painéis */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
