@@ -1,0 +1,2 @@
+import { BatchStatus } from '../types';
+export default function BatchStatusBar({ status, onChangeStatus, canApprove, onExport }: any) { return <div className="hidden md:flex items-center gap-2 text-xs"><span className="font-bold">{status}</span><button disabled={!canApprove} onClick={() => onChangeStatus(BatchStatus.APPROVED)} className="px-2 py-1 bg-green-100 text-green-800 rounded disabled:opacity-40">Aprovar</button><button onClick={onExport} className="px-2 py-1 bg-blue-100 text-blue-800 rounded">Exportado</button></div>; }

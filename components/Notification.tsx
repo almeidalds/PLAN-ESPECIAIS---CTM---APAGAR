@@ -1,0 +1,1 @@
+export default function Notification({ message, type, onClose }: any) { return <div role="alert" className={`fixed top-5 right-5 z-50 rounded-xl p-4 shadow-lg text-white ${type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-indigo-600'}`}>{message}<button className="ml-4 font-bold" onClick={onClose}>×</button></div>; }

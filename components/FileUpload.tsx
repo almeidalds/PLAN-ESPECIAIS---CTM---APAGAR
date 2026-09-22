@@ -1,0 +1,7 @@
+import * as XLSX from 'xlsx';
+import type { ImportedRow, RawDataRow } from '../types';
+const fields = ['missionary_name', 'missionary_email', 'district_code'];
+export default function FileUpload({ onDataLoaded, onRequireMapping, onError }: any) {
+  const load = async (file?: File) => { if (!file) return; try { const book = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true }); const rows = XLSX.utils.sheet_to_json<RawDataRow>(book.Sheets[book.SheetNames[0]], { defval: '' }); if (!rows.length) throw new Error('Arquivo vazio'); const headers = Object.keys(rows[0]); if (!fields.every(field => headers.includes(field))) onRequireMapping(headers, rows); else onDataLoaded(rows.map((row, index) => ({ ...row, row_index: index + 2 } as ImportedRow))); } catch (error) { onError(error instanceof Error ? error.message : 'Falha ao ler arquivo'); } };
+  return <div className="max-w-3xl mx-auto w-full p-10 bg-white dark:bg-slate-900 rounded-3xl text-center shadow-sm"><h2 className="text-2xl font-bold mb-4">Importar missionários</h2><p className="mb-6 text-slate-500">Selecione um arquivo XLSX, XLS ou CSV. A primeira linha deve conter os títulos das colunas.</p><input aria-label="Selecionar planilha" type="file" accept=".xlsx,.xls,.csv" onChange={e => load(e.target.files?.[0])} className="block mx-auto" /><p className="mt-6 text-sm text-slate-500">Campos essenciais: nome, email e distrito.</p></div>;
+}

@@ -5,15 +5,15 @@ import { processDistricts, generateSchedules, validateImportedData, autoBalanceP
 import { saveToCloud, subscribeToCloud, saveToHistory, getHistoryList, CloudSaveData } from './src/services/db';
 
 import FileUpload from './components/FileUpload';
-import Dashboard from './components/Dashboard';
+import Dashboard from './components/DashboardFull';
 import Notification from './components/Notification';
 import HealthCheck from './components/HealthCheck';
-import SettingsEditor from './components/SettingsEditor';
+import SettingsEditor from './components/SettingsEditorFull';
 import CapacitySimulator from './components/CapacitySimulator';
 import ColumnMapper from './components/ColumnMapper';
 import VersionDistributor from './components/VersionDistributor';
 import BatchStatusBar from './components/BatchStatusBar';
-import DistrictManager from './components/DistrictManager';
+import DistrictManager from './components/DistrictManagerFull';
 
 export type ScheduleAction = 'ADD' | 'EDIT' | 'DELETE';
 
@@ -67,7 +67,7 @@ const App: React.FC = () => {
         if (data.planningDate) setPlanningDate(data.planningDate);
         setRefreshKey(Date.now());
         setCurrentStep(prev => prev === AppStep.IMPORT ? AppStep.REVIEW : prev);
-        showNotification("Sincronizado com a nuvem ☁️🔄", "info");
+        showNotification("Planejamento local carregado", "info");
       }
       setIsLoadingCloud(false);
     });
@@ -76,8 +76,8 @@ const App: React.FC = () => {
 
   const handleSaveToCloud = async () => {
     setIsSaving(true);
-    try { await saveToCloud({ importedRows, overrides, manualScheduleEdits, settings, planningDate }); showNotification("Progresso salvo com sucesso! ☁️", "success"); } 
-    catch (error) { showNotification("Erro ao salvar na nuvem.", "error"); } 
+    try { await saveToCloud({ importedRows, overrides, manualScheduleEdits, settings, planningDate }); showNotification("Progresso salvo neste navegador!", "success"); } 
+    catch (error) { showNotification("Erro ao salvar neste navegador.", "error"); } 
     finally { setIsSaving(false); }
   };
 
@@ -173,8 +173,8 @@ const App: React.FC = () => {
     setManualScheduleEdits(prev => {
         let evts = [...(prev[districtId] || schedules.find(s => s.districtId === districtId)?.events || [])];
         if (action === 'ADD') evts.push(event);
-        else if (action === 'EDIT') evts = evts.map(e => (e.date === event.date && e.activity === originalActivity) ? event : e);
-        else if (action === 'DELETE') evts = evts.filter(e => !(e.date === event.date && e.activity === event.activity));
+        else if (action === 'EDIT') evts = evts.map(e => (`${e.date}|${e.time}|${e.activity}` === originalActivity) ? event : e);
+        else if (action === 'DELETE') evts = evts.filter(e => !(e.date === event.date && e.time === event.time && e.activity === event.activity));
         return { ...prev, [districtId]: sortEvts(evts) };
     });
     showNotification(action === 'ADD' ? "Atividade adicionada." : action === 'DELETE' ? "Atividade apagada." : "Cronograma atualizado.", "success");
@@ -187,8 +187,8 @@ const App: React.FC = () => {
       tgts.forEach(d => {
         let evts = [...(prev[d.id] || schedules.find(s => s.districtId === d.id)?.events || [])];
         if (action === 'ADD') evts.push(event);
-        else if (action === 'EDIT') evts = evts.map(e => (e.date === event.date && e.activity === originalActivity) ? event : e);
-        else if (action === 'DELETE') evts = evts.filter(e => !(e.date === event.date && e.activity === event.activity));
+        else if (action === 'EDIT') evts = evts.map(e => (`${e.date}|${e.time}|${e.activity}` === originalActivity) ? event : e);
+        else if (action === 'DELETE') evts = evts.filter(e => !(e.date === event.date && e.time === event.time && e.activity === event.activity));
         newState[d.id] = sortEvts(evts);
       }); return newState;
     });
@@ -206,7 +206,7 @@ const App: React.FC = () => {
   ];
 
   if (isLoadingCloud) {
-    return <div className="h-screen w-screen flex items-center justify-center bg-[#F1F5F9] dark:bg-[#080F1E]"><div className="text-indigo-500 font-bold text-xl flex flex-col items-center"><span className="text-4xl mb-4 animate-bounce">☁️</span>Conectando ao CTM Server...</div></div>;
+    return <div className="h-screen w-screen flex items-center justify-center bg-[#F1F5F9] dark:bg-[#080F1E]"><div className="text-indigo-500 font-bold text-xl flex flex-col items-center">Carregando planejamento...</div></div>;
   }
 
   return (
@@ -229,7 +229,7 @@ const App: React.FC = () => {
                {steps.map((step) => {
                    if (step.hidden) return null;
                    const isActive = step.id === currentStep;
-                   const canClick = validationReport?.totalCount || step.id === AppStep.IMPORT;
+                   const canClick = step.id === AppStep.IMPORT || step.id === AppStep.MAPPING || (!!validationReport?.totalCount && (step.id === AppStep.VALIDATION || !validationReport.blockerCount));
                    
                    return (
                    <button key={step.id} onClick={() => canClick && setCurrentStep(step.id)} disabled={!canClick} className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group ${isActive ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-500/20' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}>
@@ -268,7 +268,7 @@ const App: React.FC = () => {
 
                   {importedRows.length > 0 && (
                       <button onClick={handleSaveToCloud} disabled={isSaving} className={`px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${isSaving ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 shadow-sm border border-indigo-200 dark:border-indigo-500/30 active:scale-95'}`}>
-                          {isSaving ? '⏳ Salvando...' : '☁️ Salvar Nuvem'}
+                          {isSaving ? '⏳ Salvando...' : 'Salvar neste navegador'}
                       </button>
                   )}
                   {currentStep === AppStep.REVIEW && <BatchStatusBar status={batchStatus} onChangeStatus={setBatchStatus} canApprove={!validationReport?.blockerCount} onExport={() => setBatchStatus(BatchStatus.EXPORTED)} />}
@@ -330,7 +330,7 @@ const App: React.FC = () => {
              <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-slate-200/50 dark:border-slate-700/50 max-h-[85vh]">
                  <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex justify-between items-center">
                      <div>
-                         <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">📚 Histórico da Nuvem</h3>
+                         <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">📚 Histórico local</h3>
                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Guarde o planejamento atual ou recupere um antigo.</p>
                      </div>
                      <button onClick={() => setShowHistoryModal(false)} className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-800 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-700 transition-all flex items-center justify-center font-bold shadow-sm">✕</button>
